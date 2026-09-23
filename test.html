@@ -1,0 +1,338 @@
+<!DOCTYPE html>  <!-- 声明文档类型为HTML5 -->
+<html lang="zh-CN">  <!-- 根元素，设置页面语言为简体中文 -->
+<head>  <!-- 头部区域开始 -->
+    <meta charset="UTF-8" />  <!-- 设置字符编码为UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <!-- 视口配置，适配移动端，初始缩放比例为1 -->
+    <title>五人小组 · 购物平台</title>  <!-- 网页标题 -->
+    <style>  /*内嵌样式表开始*/
+        * { margin: 0; padding: 0; box-sizing: border-box; }  /* 全局重置：清除内外边距，盒模型设为border-box */
+        body {  /* 主体样式 */
+            font-family: system-ui, sans-serif;  /* 字体栈：优先系统UI字体，后备无衬线字体 */
+            background: #fff;  /* 白色背景，去掉原来的灰色区域 */
+            color: #222;  /* 深灰色文字 */
+            padding-top: 64px;  /* 上内边距64px，为固定导航栏留出空间 */
+            min-height: 100vh;  /* 最小高度为视口高度，确保页面至少撑满一屏 */
+        }
+        a { text-decoration: none; color: #06c; }  /* 链接去掉下划线，颜色为蓝色 */
+
+        .navbar {  /* 导航栏样式 */
+            position: fixed;  /* 固定定位 */
+            top: 0; left: 0; width: 100%;  /* 紧贴顶部，全宽 */
+            background: rgba(255,255,255,.92);  /* 半透明白色背景，92%不透明度 */
+            backdrop-filter: blur(8px);  /* 背景模糊效果，营造毛玻璃质感 */
+            border-bottom: 1px solid rgba(0,0,0,.06);  /* 底部极淡的分割线 */
+            padding: 0 24px;  /* 左右内边距24px */
+            height: 64px;  /* 固定高度64px */
+            display: flex;  /* 弹性布局 */
+            align-items: center;  /* 垂直居中 */
+            position: relative;  /* 相对定位，为链接的绝对居中提供参照 */
+            z-index: 100;  /* 层级最高，防止被其他元素遮挡 */
+        }
+        .navbar .brand {  /* 品牌名称 */
+            font-weight: 600;  /* 加粗 */
+            font-size: 1.15rem;  /* 字号 */
+            color: #1a1a2e;  /* 深色 */
+        }
+        .navbar .brand span { color: #888; font-weight: 400; font-size: .8rem; }  /* 品牌副标题样式：灰色、细体、较小 */
+        .nav-links {  /* 导航链接容器 */
+            display: flex;  /* 弹性布局 */
+            gap: 6px;  /* 间距6px */
+            list-style: none;  /* 去掉列表样式 */
+            position: absolute;  /* 绝对定位，相对于导航栏 */
+            left: 50%;  /* 左边界居中 */
+            transform: translateX(-50%);  /* 向左偏移自身宽度的一半，实现居中 */
+        }
+        .nav-links a {  /* 导航链接样式 */
+            display: inline-block;  /* 行内块元素，方便设置内边距和圆角 */
+            padding: 6px 16px;  /* 上下6px，左右16px的内边距 */
+            border-radius: 30px;  /* 大圆角，胶囊按钮形状 */
+            font-size: .85rem;  /* 字体大小 */
+            font-weight: 500;  /* 字重500 */
+            color: #444;  /* 深灰色文字 */
+            /* 已移除 transition 和 hover 效果，保持极简 */
+        }
+
+        .pages-wrapper { max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }  /* 页面容器：最大宽度1100px，居中，内边距 */
+        .page {  /* 每个页面区块的通用样式 */
+            display: none;  /* 默认隐藏，通过:target显示 */
+            background: #fff;  /* 白色背景 */
+            border-radius: 16px;  /* 大圆角卡片 */
+            padding: 32px 34px;  /* 内边距 */
+            margin-bottom: 24px;  /* 底部外边距 */
+            border: 1px solid #e8ecf0;  /* 浅色边框 */
+            animation: fadeSlide .45s forwards;  /* 淡入上滑动画，持续0.45秒，保持结束状态 */
+        }
+        @keyframes fadeSlide {  /* 定义淡入上滑动画 */
+            0% { opacity: 0; transform: translateY(20px); }  /* 起始：透明，向下偏移20px */
+            100% { opacity: 1; transform: translateY(0); }  /* 结束：不透明，正常位置 */
+        }
+        #page-login { display: block; max-width: 420px; margin: 0 auto; padding: 40px 36px; }  /* 登录页默认显示，限制宽度并居中 */
+        [id^="page-"]:target ~ #page-login { display: none; }  /* 当任何其他page被定位(target)时，隐藏登录页 */
+        .page:target { display: block; }  /* 被定位的页面显示 */
+        .page-header {  /* 页面头部样式 */
+            display: flex;  /* 弹性布局 */
+            justify-content: space-between;  /* 两端对齐 */
+            align-items: center;  /* 垂直居中 */
+            margin-bottom: 24px;  /* 底部外边距 */
+            padding-bottom: 12px;  /* 底部内边距 */
+            border-bottom: 2px solid #f0f2f5;  /* 底部分割线 */
+        }
+        .page-header h2 { font-size: 1.5rem; font-weight: 600; color: #1a1a2e; }  /* 页面标题样式 */
+
+        /* ————— 精简版表单组样式 ————— */
+        .form-group { margin-bottom: 18px; }  /* 表单组底部外边距 */
+        .form-group label { display: block; font-size: .85rem; margin-bottom: 4px; }  /* 标签块级显示 */
+        .form-group input,
+        .form-group select {
+            width: 100%;  /* 宽度占满容器 */
+            padding: 10px 14px;  /* 内边距 */
+            border: 1.5px solid #e2e6ea;  /* 边框 */
+            border-radius: 10px;  /* 圆角 */
+            font-size: .95rem;  /* 字号 */
+            background: #fafbfc;  /* 浅灰背景 */
+            outline: none;  /* 去掉默认聚焦轮廓 */
+        }
+        .form-group input:focus,
+        .form-group select:focus { border-color: #06c; }  /* 聚焦时边框变蓝 */
+        .form-group .radio-group { display: flex; gap: 20px; padding-top: 4px; }  /* 单选按钮组弹性布局 */
+        .form-group .radio-group label { font-weight: 400; font-size: .9rem; }  /* 单选按钮标签样式 */
+        .form-group .radio-group input[type="radio"] { width: auto; }  /* 单选按钮宽度自动 */
+
+        /* ————— 极简按钮样式（无过渡、无悬停特效） ————— */
+        .btn {
+            padding: 10px 24px;  /* 内边距 */
+            border: none;  /* 无边框 */
+            border-radius: 30px;  /* 胶囊圆角 */
+            font-size: .9rem;  /* 字号 */
+            font-weight: 600;  /* 加粗 */
+            background: #f0f2f5;  /* 浅灰背景 */
+            color: #444;  /* 深灰文字 */
+            cursor: pointer;  /* 手型指针 */
+        }
+        .btn-primary { background: #06c; color: #fff; }  /* 主要按钮蓝色背景白色文字 */
+        .btn-reset { background: #fff; color: #555; border: 1.5px solid #d0d5dd; }  /* 重置按钮白底灰字带边框 */
+        .btn-group { display: flex; gap: 12px; margin-top: 8px; }  /* 按钮组弹性布局 */
+        #page-login .btn-group { justify-content: center; }  /* 登录页按钮组居中 */
+
+        .product-grid {  /* 商品网格容器 */
+            display: grid;  /* CSS网格布局 */
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));  /* 自动填充列，最小170px，最大1fr */
+            gap: 20px;  /* 网格间距 */
+            margin-top: 12px;  /* 上外边距 */
+        }
+        .product-card {  /* 商品卡片 */
+            border: 1px solid #e8ecf0;  /* 边框 */
+            border-radius: 14px;  /* 圆角 */
+            padding: 18px 14px 16px;  /* 内边距 */
+            text-align: center;  /* 文字居中 */
+            background: #fff;  /* 白色背景 */
+        }
+        .product-card:hover { transform: translateY(-6px); border-color: #06c; }  /* 卡片悬停仍保留动效，保持交互感 */
+        .product-img {  /* 商品图片 */
+            display: block;  /* 块级元素 */
+            width: 100%;  /* 宽度100% */
+            max-width: 80px;  /* 最大宽度80px */
+            height: 60px;  /* 固定高度60px */
+            margin: 0 auto;  /* 居中 */
+            object-fit: contain;  /* 保持比例，完整显示在容器内 */
+        }
+        .product-card .name { font-weight: 600; font-size: .95rem; margin: 6px 0 2px; }  /* 商品名称 */
+        .product-card .price { color: #06c; font-weight: 700; font-size: 1.05rem; }  /* 价格蓝色加粗 */
+        .product-card .price small { font-size: .7rem; color: #888; font-weight: 400; }  /* 价格后缀小字灰色 */
+        .product-card .btn-add {  /* 加入购物车按钮 */
+            margin-top: 12px;  /* 上外边距 */
+            width: 100%;  /* 全宽 */
+            padding: 6px 0;  /* 上下内边距 */
+            border: 1.5px solid #d0d5dd;  /* 边框 */
+            border-radius: 30px;  /* 胶囊圆角 */
+            background: #fff;  /* 白底 */
+            font-size: .85rem;  /* 字号 */
+            font-weight: 500;  /* 字重 */
+            color: #444;  /* 文字颜色 */
+        }
+
+        .detail-container { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }  /* 详情页弹性容器 */
+        .detail-img-box {  /* 详情图片盒子 */
+            flex: 0 0 140px;  /* 不伸缩，基础宽度140px */
+            display: flex;  /* 弹性盒 */
+            justify-content: center;  /* 水平居中 */
+            align-items: center;  /* 垂直居中 */
+            background: #f5f7fa;  /* 浅灰背景 */
+            border-radius: 16px;  /* 圆角 */
+            padding: 20px 28px;  /* 内边距 */
+            border: 1px solid #e8ecf0;  /* 边框 */
+        }
+        .detail-img { width: 100%; max-width: 120px; height: auto; object-fit: contain; }  /* 详情图片样式 */
+        .detail-info { flex: 1; min-width: 220px; }  /* 详情信息区域弹性占据剩余空间 */
+        .detail-info h3 { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; }  /* 商品名称标题 */
+        .detail-info .price { font-size: 1.5rem; font-weight: 700; color: #06c; margin: 4px 0 10px; }  /* 详情价格 */
+        .detail-info .price small { font-size: .9rem; color: #888; font-weight: 400; }  /* 价格后缀小字 */
+        .detail-info .desc { color: #555; line-height: 1.7; margin: 8px 0 18px; }  /* 描述文字样式 */
+
+        .cart-item {  /* 购物车单项样式 */
+            display: grid;  /* 网格布局 */
+            grid-template-columns: 60px 1fr 90px 110px 44px;  /* 五列：图片60px，名称弹性，单价90px，数量110px，删除44px */
+            align-items: center;  /* 垂直居中 */
+            padding: 12px 0;  /* 上下内边距 */
+            border-bottom: 1px solid #edf0f5;  /* 底部分割线 */
+            gap: 12px;  /* 列间距 */
+        }
+        .cart-img { width: 48px; height: 48px; object-fit: contain; }  /* 购物车缩略图尺寸 */
+        .cart-item .ci-name { font-weight: 500; }  /* 商品名加粗 */
+        .cart-item .ci-price { color: #555; }  /* 单价灰色 */
+        .cart-item .ci-qty input {  /* 数量输入框 */
+            width: 52px;  /* 固定宽度 */
+            padding: 5px 8px;  /* 内边距 */
+            border: 1.5px solid #d0d5dd;  /* 边框 */
+            border-radius: 8px;  /* 圆角 */
+            text-align: center;  /* 文字居中 */
+            font-size: .9rem;  /* 字号 */
+        }
+        .cart-item .ci-qty input:focus { border-color: #06c; }  /* 聚焦边框变蓝 */
+        .cart-item .ci-subtotal { font-weight: 600; }  /* 小计加粗 */
+        .cart-item .ci-remove { background: none; border: none; color: #c00; font-size: 1.2rem; cursor: pointer; }  /* 删除按钮极简样式 */
+        .cart-footer {  /* 购物车底部 */
+            display: flex;  /* 弹性布局 */
+            justify-content: space-between;  /* 两端对齐 */
+            align-items: center;  /* 垂直居中 */
+            padding-top: 16px;  /* 上内边距 */
+            border-top: 2px solid #edf0f5;  /* 顶部分割线 */
+            margin-top: 10px;  /* 上外边距 */
+            flex-wrap: wrap;  /* 允许换行 */
+            gap: 12px;  /* 间距 */
+        }
+        .cart-footer .total { font-weight: 700; font-size: 1.2rem; }  /* 合计金额样式 */
+        .cart-footer .total span { color: #06c; }  /* 合计金额数字蓝色 */
+
+        .payment-container { display: grid; grid-template-columns: 1fr 260px; gap: 28px; align-items: start; }  /* 支付页网格布局：表单占剩余空间，摘要260px */
+        .payment-summary {  /* 订单摘要卡片 */
+            border: 1px solid #e8ecf0;  /* 边框 */
+            border-radius: 14px;  /* 圆角 */
+            padding: 22px;  /* 内边距 */
+            background: #fafbfc;  /* 浅灰背景 */
+        }
+        .payment-summary h4 { font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid #e0e4ea; padding-bottom: 8px; }  /* 摘要标题 */
+        .payment-summary .ps-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: .88rem; }  /* 摘要行两端对齐 */
+        .payment-summary .ps-row.total {  /* 合计行特殊样式 */
+            font-weight: 700;  /* 加粗 */
+            font-size: 1.05rem;  /* 稍大 */
+            border-top: 1px solid #d0d5dd;  /* 上边框 */
+            padding-top: 10px;  /* 上内边距 */
+            margin-top: 6px;  /* 上外边距 */
+        }
+        .payment-summary .ps-row.total span { color: #06c; }  /* 合计金额蓝色 */
+
+        /* 平板 ≥768px：浅粉色 */
+        @media screen and (min-width: 768px) { 
+            .pages-wrapper { background-color: #fff0f5; } 
+        }
+        /* 中等电脑 ≥992px：薄荷绿，覆盖平板粉色 */
+        @media screen and (min-width: 992px) { 
+            .pages-wrapper { background-color: #f0fff0; } 
+        }
+    </style>  <!-- 内嵌样式表结束 -->
+</head>  <!-- 头部区域结束 -->
+<body>  <!-- 页面主体内容开始 -->
+
+    <nav class="navbar">  <!-- 导航栏 -->
+        <div class="brand">🛒 小组购物 <span>· 五人协创</span></div>  <!-- 品牌名称和副标题 -->
+        <ul class="nav-links">  <!-- 导航链接列表，通过绝对定位实现居中 -->
+            <li><a href="#page-login">🔐 登录</a></li>  <!-- 登录页链接 -->
+            <li><a href="#page-products">📦 商品</a></li>  <!-- 商品页链接 -->
+            <li><a href="#page-detail">📄 详情</a></li>  <!-- 详情页链接 -->
+            <li><a href="#page-cart">🛒 购物车</a></li>  <!-- 购物车页链接 -->
+            <li><a href="#page-payment">💳 支付</a></li>  <!-- 支付页链接 -->
+        </ul>
+        <!-- 用户状态区域已删除 -->
+    </nav>
+
+    <div class="pages-wrapper">  <!-- 页面内容容器，通过锚点切换显示不同section -->
+
+        <section class="page" id="page-products">  <!-- 商品列表页 -->
+            <div class="page-header"><h2>📦 商品列表</h2></div>  <!-- 页面标题 -->
+            <form>  <!-- 搜索表单 -->
+                <div class="form-group"><label>🔍 搜索商品</label><input type="text" name="search" placeholder="输入关键词…" /></div>  <!-- 搜索输入框 -->
+                <div class="btn-group" style="margin-bottom:18px;">  <!-- 按钮组，下边距18px -->
+                    <button type="submit" class="btn btn-primary">搜索</button>  <!-- 搜索提交按钮 -->
+                    <button type="reset" class="btn btn-reset">重置</button>  <!-- 重置按钮 -->
+                </div>
+            </form>
+            <div class="product-grid">  <!-- 商品网格 -->
+                <div class="product-card"><img src="./iphone.jpg" class="product-img" alt="iPhone 15 Pro"><div class="name">iPhone 15 Pro</div><div class="price">¥7,999 <small>起</small></div><button class="btn-add">➕ 加入购物车</button></div>  <!-- 商品卡片 iPhone -->
+                <div class="product-card"><img src="./macbook.jpg" class="product-img" alt="MacBook Air M3"><div class="name">MacBook Air M3</div><div class="price">¥8,999 <small>起</small></div><button class="btn-add">➕ 加入购物车</button></div>  <!-- MacBook -->
+                <div class="product-card"><img src="./airpods.png" class="product-img" alt="AirPods Pro 2"><div class="name">AirPods Pro 2</div><div class="price">¥1,899 <small>起</small></div><button class="btn-add">➕ 加入购物车</button></div>  <!-- AirPods -->
+                <div class="product-card"><img src="./watch.jpg" class="product-img" alt="Apple Watch S9"><div class="name">Apple Watch S9</div><div class="price">¥2,999 <small>起</small></div><button class="btn-add">➕ 加入购物车</button></div>  <!-- Apple Watch -->
+            </div>
+        </section>
+
+        <section class="page" id="page-detail">  <!-- 商品详情页 -->
+            <div class="page-header"><h2>📄 商品详情</h2></div>  <!-- 页面标题 -->
+            <div class="detail-container">  <!-- 详情弹性容器 -->
+                <div class="detail-img-box">  <!-- 图片盒子 -->
+                    <img src="./iphone.jpg" class="detail-img" alt="iPhone 15 Pro">  <!-- 详情大图 -->
+                </div>
+                <div class="detail-info">  <!-- 详情信息区 -->
+                    <h3>iPhone 15 Pro</h3>  <!-- 商品名 -->
+                    <div class="price">¥7,999 <small>起</small></div>  <!-- 价格 -->
+                    <p class="desc">A17 Pro 芯片 · 钛金属边框 · 4800万像素主摄 · USB-C</p>  <!-- 描述 -->
+                    <form>  <!-- 操作表单 -->
+                        <div class="form-group" style="max-width:200px;"><label>数量</label><input type="number" name="qty" value="1" min="1" max="99" /></div>  <!-- 数量输入，限制1-99 -->
+                        <div class="btn-group">  <!-- 按钮组 -->
+                            <button type="submit" class="btn btn-primary">加入购物车</button>  <!-- 加入购物车 -->
+                            <button type="submit" class="btn btn-primary" style="background:#28a745;border-color:#28a745;">立即购买</button>  <!-- 立即购买（绿色） -->
+                            <button type="reset" class="btn btn-reset">重置</button>  <!-- 重置按钮 -->
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="page-cart">  <!-- 购物车页 -->
+            <div class="page-header"><h2>🛒 购物车</h2></div>  <!-- 标题 -->
+            <form>  <!-- 购物车表单 -->
+                <div class="cart-item"><div class="ci-emoji"><img src="./iphone.jpg" class="cart-img" alt="iPhone"></div><div class="ci-name">iPhone 15 Pro</div><div class="ci-price">¥7,999</div><div class="ci-qty"><input type="number" name="qty1" value="1" min="0" /></div><div class="ci-subtotal">¥7,999</div><button type="button" class="ci-remove">✕</button></div>  <!-- 购物车项 iPhone -->
+                <div class="cart-item"><div class="ci-emoji"><img src="./airpods.png" class="cart-img" alt="AirPods"></div><div class="ci-name">AirPods Pro 2</div><div class="ci-price">¥1,899</div><div class="ci-qty"><input type="number" name="qty2" value="2" min="0" /></div><div class="ci-subtotal">¥3,798</div><button type="button" class="ci-remove">✕</button></div>  <!-- AirPods -->
+                <div class="cart-item"><div class="ci-emoji"><img src="./watch.jpg" class="cart-img" alt="Apple Watch"></div><div class="ci-name">Apple Watch S9</div><div class="ci-price">¥2,999</div><div class="ci-qty"><input type="number" name="qty3" value="1" min="0" /></div><div class="ci-subtotal">¥2,999</div><button type="button" class="ci-remove">✕</button></div>  <!-- Apple Watch -->
+                <div class="cart-footer"><div class="total">合计：<span>¥14,796</span></div><div class="btn-group"><button type="reset" class="btn btn-reset">重置数量</button><button type="submit" class="btn btn-primary">去结算</button></div></div>  <!-- 底部合计和操作按钮 -->
+            </form>
+        </section>
+
+        <section class="page" id="page-payment">  <!-- 支付结算页 -->
+            <div class="page-header"><h2>💳 支付结算</h2></div>  <!-- 标题 -->
+            <div class="payment-container">  <!-- 支付页双栏布局 -->
+                <form>  <!-- 收货信息表单 -->
+                    <div class="form-group"><label>收货人</label><input type="text" name="receiver" placeholder="请输入姓名" value="张三" /></div>  <!-- 收货人 -->
+                    <div class="form-group"><label>联系电话</label><input type="tel" name="phone" placeholder="请输入手机号" value="13800001111" /></div>  <!-- 电话 -->
+                    <div class="form-group"><label>收货地址</label><input type="text" name="address" placeholder="请输入详细地址" value="北京市朝阳区科技路88号" /></div>  <!-- 地址 -->
+                    <div class="form-group">  <!-- 支付方式选择 -->
+                        <label>支付方式</label>
+                        <div class="radio-group">  <!-- 单选按钮组 -->
+                            <label><input type="radio" name="paymethod" value="wechat" checked /> 微信支付</label>  <!-- 微信，默认选中 -->
+                            <label><input type="radio" name="paymethod" value="alipay" /> 支付宝</label>  <!-- 支付宝 -->
+                            <label><input type="radio" name="paymethod" value="card" /> 银行卡</label>  <!-- 银行卡 -->
+                        </div>
+                    </div>
+                    <div class="btn-group"><button type="submit" class="btn btn-primary">确认支付</button><button type="reset" class="btn btn-reset">重置</button></div>  <!-- 按钮组 -->
+                </form>
+                <div class="payment-summary">  <!-- 订单摘要卡片 -->
+                    <h4>📊 订单摘要</h4>  <!-- 摘要标题 -->
+                    <div class="ps-row"><span>📱 iPhone 15 Pro ×1</span><span>¥7,999</span></div>  <!-- 摘要行 -->
+                    <div class="ps-row"><span>🎧 AirPods Pro 2 ×2</span><span>¥3,798</span></div>  <!-- 摘要行 -->
+                    <div class="ps-row"><span>⌚ Apple Watch S9 ×1</span><span>¥2,999</span></div>  <!-- 摘要行 -->
+                    <div class="ps-row total"><span>合计</span><span>¥14,796</span></div>  <!-- 合计行 -->
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="page-login">  <!-- 登录页，默认显示 -->
+            <div class="page-header"><h2>🔐 登录</h2></div>  <!-- 标题 -->
+            <form>  <!-- 登录表单 -->
+                <div class="form-group"><label>手机号码</label><input type="text" name="username" placeholder="请输入手机号码" /></div>  <!-- 手机号输入 -->
+                <div class="form-group"><label>密码</label><input type="password" name="password" placeholder="请输入密码"/></div>  <!-- 密码输入 -->
+                <div class="btn-group"><button type="submit" class="btn btn-primary">登录</button><button type="reset" class="btn btn-reset">重置</button></div>  <!-- 按钮组 -->
+            </form>
+        </section>
+
+    </div>  <!-- 页面容器结束 -->
+</body>  <!-- 主体结束 -->
+</html>  <!-- 文档结束 -->
